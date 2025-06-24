@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  discordId String   @unique
+  username  String
+  avatar    String?
+  role      Role     @default(PLAYER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  availabilities Availability[]
+}
+
+enum Role {
+  PLAYER
+  CO_MANAGER
+  MANAGER
+}
+
+// === NOUVEAUX MODÈLES DE BASE POUR L'APPLICATION ===
+
+// Enum pour le statut de présence
+enum AvailabilityStatus {
+  PRESENT
+  ABSENT
+  MAYBE
+}
+
+// Modèle pour les "organisateurs" de compétitions (Nouveau)
+model CompetitionProvider {
+  id   String @id @default(cuid())
+  name String @unique // ex: "VPG France", "FVPA", "IFVPA"
+
+  competitions Competition[]
+}
+
+// Modèle Competition (Version modifiée)
+model Competition {
+  id        String   @id @default(cuid())
+  name      String   // ex: "Ligue 1", "Coupe de France"
+  format    String   // "LIGUE" ou "COUPE"
+  season    String   // ex: "Saison 1"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider   CompetitionProvider @relation(fields: [providerId], references: [id])
+  providerId String
+
+  matches Match[]
+}
+
+// Modèle Match (Version modifiée et définitive)
+model Match {
+  id            String    @id @default(cuid())
+  opponent      String
+  round         String?   // ex: "Journée 5", "32ème de finale"
+  matchDate     DateTime? // Rendu optionnel pour correspondre à notre logique
+  ourScore      Int?
+  theirScore    Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  competition   Competition @relation(fields: [competitionId], references: [id])
+  competitionId String
+
+  session       Session?  @relation(fields: [sessionId], references: [id])
+  sessionId     String?
+}
+
+// Modèle pour les Sessions de jeu
+model Session {
+  id        String   @id @default(cuid())
+  startTime DateTime
+  endTime   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matches        Match[]
+  availabilities Availability[]
+}
+
+// Modèle pour lier un Utilisateur à une Session (sa présence)
+model Availability {
+  id     String             @id @default(cuid())
+  status AvailabilityStatus
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  session   Session @relation(fields: [sessionId], references: [id])
+  sessionId String
+
+  @@unique([userId, sessionId])
+}
