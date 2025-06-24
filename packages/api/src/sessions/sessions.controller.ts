@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common'; // <-- On ajoute Param ici
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 
@@ -14,5 +14,11 @@ export class SessionsController {
   @Get()
   findAll() {
     return this.sessionsService.findAll();
+  }
+
+  // --- LA MÉTHODE MANQUANTE À AJOUTER ---
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.sessionsService.findOne(id);
   }
 }

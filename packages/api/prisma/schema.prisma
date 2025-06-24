@@ -74,8 +74,8 @@ model Match {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  competition   Competition @relation(fields: [competitionId], references: [id])
-  competitionId String
+  competition   Competition? @relation(fields: [competitionId], references: [id])
+  competitionId String?
 
   session       Session?  @relation(fields: [sessionId], references: [id])
   sessionId     String?

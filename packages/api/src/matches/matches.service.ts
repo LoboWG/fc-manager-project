@@ -8,16 +8,18 @@ export class MatchesService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createMatchDto: CreateMatchDto) {
-  // On extrait les ID et le reste des données du DTO
   const { competitionId, sessionId, ...matchData } = createMatchDto;
 
   return this.prisma.match.create({
     data: {
-      ...matchData, // On passe les données simples (opponent, round, matchDate si présent)
-      competition: {
-        connect: { id: competitionId }, // On connecte obligatoirement la compétition
-      },
-      // On ajoute la connexion à la session CONDITIONNELLEMENT
+      ...matchData, // opponent, round, matchDate...
+      // On connecte la compétition SEULEMENT si un competitionId est fourni
+      ...(competitionId && {
+        competition: {
+          connect: { id: competitionId },
+        },
+      }),
+      // On connecte la session SEULEMENT si un sessionId est fourni
       ...(sessionId && {
         session: {
           connect: { id: sessionId },

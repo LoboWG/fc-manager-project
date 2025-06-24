@@ -40,8 +40,27 @@ export class SessionsService {
 
   // Les méthodes ci-dessous ont été générées par le CLI, nous les laissons pour le moment.
   findOne(id: string) {
-    return `This action returns a #${id} session`;
-  }
+  return this.prisma.session.findUnique({
+    where: { id },
+    // On inclut tous les matchs associés à cette session
+    include: {
+      matches: {
+        // On trie les matchs par heure pour un affichage logique
+        orderBy: {
+          matchDate: 'asc',
+        },
+        // Pour chaque match, on inclut aussi les infos de la compétition et de l'organisateur
+        include: {
+          competition: {
+            include: {
+              provider: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
 
   update(id: string, updateSessionDto: UpdateSessionDto) {
     return `This action updates a #${id} session`;

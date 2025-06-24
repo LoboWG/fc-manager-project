@@ -2,7 +2,7 @@ import {
   IsNotEmpty,
   IsString,
   IsDateString,
-  IsOptional, // <-- On importe le nouveau décorateur
+  IsOptional,
 } from 'class-validator';
 
 export class CreateMatchDto {
@@ -22,8 +22,8 @@ export class CreateMatchDto {
 
   // La compétition reste obligatoire pour créer un match
   @IsString()
-  @IsNotEmpty()
-  competitionId: string;
+  @IsOptional()
+  competitionId?: string;
 
   // La session est maintenant optionnelle
   @IsString()

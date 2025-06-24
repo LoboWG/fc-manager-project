@@ -22,6 +22,8 @@ export class DiscordStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: any, accessToken: string, refreshToken: string, profile: Profile) {
+    console.log('--- DISCORD STRATEGY: VALIDATE CALLED ---'); // ESPION 1
+    console.log('Discord Profile Received:', profile.username); // ESPION 2
     return this.authService.validateUser(profile);
   }
 }
