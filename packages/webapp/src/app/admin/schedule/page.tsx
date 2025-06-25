@@ -62,7 +62,7 @@ export default function SchedulePage() {
       {/* Formulaire de création de session */}
       <div className="mb-8 p-6 bg-gray-800 text-white rounded-lg">
         <h2 className="text-xl font-semibold mb-4">Créer une nouvelle session</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" suppressHydrationWarning={true}>
           <div>
             <label htmlFor="start-time" className="block text-sm font-medium text-gray-300 mb-1">
               Début de la session
@@ -101,7 +101,7 @@ export default function SchedulePage() {
         <div className="space-y-4">
           {sessions.map((session) => (
             // Chaque session est maintenant un lien vers sa page de détail
-            <Link href={`/admin/schedule/${session.id}`} key={session.id}>
+            <Link href={`/admin/schedule/${session.id}`} key={session.id} className='block'>
               <div className="block p-4 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
                 <h3 className="font-bold text-lg">
                   Session du {new Date(session.startTime).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}

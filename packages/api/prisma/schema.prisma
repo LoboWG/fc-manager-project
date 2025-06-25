@@ -23,6 +23,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   availabilities Availability[]
+  lineupSlots    LineupPlayer[]
 }
 
 enum Role {
@@ -88,9 +89,9 @@ model Session {
   endTime   DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   matches        Match[]
   availabilities Availability[]
+  lineup         LineupPlayer[]
 }
 
 // Modèle pour lier un Utilisateur à une Session (sa présence)
@@ -104,5 +105,31 @@ model Availability {
   session   Session @relation(fields: [sessionId], references: [id])
   sessionId String
 
+  @@unique([userId, sessionId])
+}
+
+// --- MODÈLES POUR LA COMPOSITION D'ÉQUIPE ---
+
+// Enum pour le statut d'un joueur dans la compo
+enum LineupStatus {
+  TITULAIRE
+  REMPLACANT
+}
+
+// Modèle qui représente un joueur dans la composition pour une session
+model LineupPlayer {
+  id        String       @id @default(cuid())
+  position  String       // ex: "MOC", "DG", "BU"
+  status    LineupStatus // TITULAIRE ou REMPLACANT
+
+  // Relation avec l'utilisateur
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+
+  // Relation avec la session
+  session   Session @relation(fields: [sessionId], references: [id])
+  sessionId String
+
+  // On s'assure qu'un joueur ne peut avoir qu'une seule place par session
   @@unique([userId, sessionId])
 }

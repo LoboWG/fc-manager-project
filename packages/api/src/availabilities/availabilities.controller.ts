@@ -1,12 +1,12 @@
 import { Controller, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { AvailabilitiesService } from './availabilities.service';
 import { SetAvailabilityDto } from './dto/set-availability.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
+import { AuthenticatedGuard } from '../auth/authenticated.guard'; 
 
 // Notez la route : elle est "imbriquée" dans les sessions
 @Controller('sessions/:sessionId/availabilities')
-@UseGuards(AuthGuard('discord')) // On protège TOUTES les routes de ce contrôleur
+@UseGuards(AuthenticatedGuard) // On protège TOUTES les routes de ce contrôleur
 export class AvailabilitiesController {
   constructor(private readonly availabilitiesService: AvailabilitiesService) {}
 

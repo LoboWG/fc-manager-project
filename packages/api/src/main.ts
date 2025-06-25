@@ -14,9 +14,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
-    origin: 'http://localhost:3001',
-    credentials: true,
-  });
+  origin: 'http://localhost:3001',
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // On autorise explicitement toutes les méthodes
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+});
 
   app.use(
     session({
