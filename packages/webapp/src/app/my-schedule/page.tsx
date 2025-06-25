@@ -1,13 +1,14 @@
-// Fichier : webapp/src/app/my-schedule/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
+import { useAuth } from '@/contexts/AuthContext'; // <--- 1. IMPORTER LE HOOK
 
-// --- Types de Données ---
+// --- Interfaces ---
 type AvailabilityStatus = 'PRESENT' | 'ABSENT' | 'MAYBE';
 interface Session {
   id: string;
   startTime: string;
+  endTime: string;
   availabilities: { status: AvailabilityStatus }[];
 }
 
@@ -16,19 +17,24 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
 
 export default function MySchedulePage() {
   // --- États ---
+  const { user, loading: authLoading } = useAuth(); // <--- 2. UTILISER LE HOOK POUR OBTENIR L'UTILISATEUR
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- Récupération des données ---
   const fetchSessions = async () => {
+    // Cette condition est maintenant valide car "user" existe
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      const response = await fetch('http://localhost:3000/api/sessions', {
-        credentials: 'include', // Important pour envoyer le cookie de session !
+      const response = await fetch('http://localhost:3000/api/sessions/my-schedule', {
+        credentials: 'include',
       });
       if (!response.ok) {
-        // Gérer le cas où l'utilisateur n'est pas connecté
-        setIsLoading(false);
-        return;
+        throw new Error('La récupération des sessions a échoué');
       }
       const data = await response.json();
       setSessions(data);
@@ -40,56 +46,58 @@ export default function MySchedulePage() {
   };
 
   useEffect(() => {
-    fetchSessions();
-  }, []);
+    // On attend que le chargement de l'authentification soit terminé avant de fetcher
+    if (!authLoading) {
+      fetchSessions();
+    }
+  }, [user, authLoading]); // On relance si l'utilisateur ou le statut de chargement change
 
   // --- Gestion des clics ---
   const handleSetAvailability = async (sessionId: string, status: AvailabilityStatus) => {
-    // On met à jour l'affichage immédiatement pour une meilleure réactivité (Optimistic Update)
     setSessions(currentSessions =>
       currentSessions.map(s => 
         s.id === sessionId ? { ...s, availabilities: [{ status }] } : s
       )
     );
 
-    // Puis on envoie la vraie requête à l'API
     await fetch(`http://localhost:3000/api/sessions/${sessionId}/availabilities`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // Route protégée !
+      credentials: 'include',
       body: JSON.stringify({ status }),
     });
-
-    // On pourrait rafraîchir les données ici avec fetchSessions() pour être sûr,
-    // mais l'update optimiste suffit souvent pour l'expérience utilisateur.
   };
 
   // --- Rendu ---
-  if (isLoading) return <div className="p-8 text-white">Chargement du calendrier...</div>;
+  if (isLoading || authLoading) {
+    return <div className="p-8 text-white">Chargement de votre calendrier...</div>;
+  }
+
+  if (!user) {
+    return <div className="p-8 text-white">Veuillez vous connecter pour voir votre calendrier.</div>
+  }
 
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8 text-white">Mes Présences</h1>
       <div className="space-y-6">
         {sessions.map((session) => {
-          // On récupère le statut actuel de l'utilisateur pour cette session
           const currentUserStatus = session.availabilities[0]?.status;
-
           return (
-            <div key={session.id} className="p-6 bg-gray-800 rounded-lg">
+            <div key={session.id} className="p-6 bg-gray-800 rounded-lg shadow-lg">
               <h2 className="text-xl font-bold text-white mb-2">
                 Session du {formatDate(session.startTime)}
               </h2>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
                 <p className="text-gray-300 flex-grow">
-                  Indiquez votre présence pour cette session :
+                  Votre statut :
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSetAvailability(session.id, 'PRESENT')}
-                    className={`px-4 py-2 rounded transition-colors ${
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       currentUserStatus === 'PRESENT'
-                        ? 'bg-green-500 text-white font-bold'
+                        ? 'bg-green-500 text-white ring-2 ring-white'
                         : 'bg-gray-600 hover:bg-green-700'
                     }`}
                   >
@@ -97,9 +105,9 @@ export default function MySchedulePage() {
                   </button>
                   <button
                     onClick={() => handleSetAvailability(session.id, 'ABSENT')}
-                    className={`px-4 py-2 rounded transition-colors ${
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       currentUserStatus === 'ABSENT'
-                        ? 'bg-red-500 text-white font-bold'
+                        ? 'bg-red-500 text-white ring-2 ring-white'
                         : 'bg-gray-600 hover:bg-red-700'
                     }`}
                   >
@@ -107,9 +115,9 @@ export default function MySchedulePage() {
                   </button>
                   <button
                     onClick={() => handleSetAvailability(session.id, 'MAYBE')}
-                    className={`px-4 py-2 rounded transition-colors ${
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${
                       currentUserStatus === 'MAYBE'
-                        ? 'bg-yellow-500 text-white font-bold'
+                        ? 'bg-yellow-500 text-white ring-2 ring-white'
                         : 'bg-gray-600 hover:bg-yellow-700'
                     }`}
                   >
@@ -120,6 +128,11 @@ export default function MySchedulePage() {
             </div>
           );
         })}
+        {sessions.length === 0 && (
+          <div className="p-6 bg-gray-800 rounded-lg text-center text-gray-400">
+            Aucune session n'est planifiée pour le moment.
+          </div>
+        )}
       </div>
     </div>
   );

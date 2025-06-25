@@ -57,6 +57,8 @@ export class SessionsService {
   });
 }
 
+
+
   update(id: string, updateSessionDto: UpdateSessionDto) {
     return `This action updates a #${id} session`;
   }
@@ -69,18 +71,16 @@ export class SessionsService {
 async setLineup(sessionId: string, setLineupDto: SetLineupDto) {
     const { lineup } = setLineupDto;
 
-    // On utilise une transaction pour s'assurer que les deux opérations
-    // (supprimer et créer) réussissent ou échouent ensemble.
-    return this.prisma.$transaction(async (tx) => {
+    // Étape 1 : On effectue la transaction avec la base de données
+    const result = await this.prisma.$transaction(async (tx) => {
       // 1. On supprime l'ancienne composition pour cette session
       await tx.lineupPlayer.deleteMany({
         where: { sessionId: sessionId },
       });
 
       // 2. On crée toutes les nouvelles entrées de la composition
-      // On transforme notre liste de joueurs DTO en données pour Prisma
       const lineupData = lineup.map(player => ({
-        sessionId: sessionId, // On ajoute l'ID de la session à chaque joueur
+        sessionId: sessionId,
         userId: player.userId,
         position: player.position,
         status: player.status,
@@ -91,6 +91,40 @@ async setLineup(sessionId: string, setLineupDto: SetLineupDto) {
       });
 
       return createdLineup;
+    });
+
+    // --- C'EST LE BLOC DE CODE À AJOUTER ---
+    // Étape 2 : Si la transaction a réussi, on notifie le bot
+    try {
+      console.log(`[API] Notifying bot about lineup for session ${sessionId}...`);
+      await fetch('http://localhost:3002/webhooks/lineup-ready', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: sessionId }),
+      });
+    } catch (error) {
+      // Si le bot n'est pas démarré, on affiche une erreur mais on ne fait pas planter l'API
+      console.error('[API] Failed to notify bot:', error.message);
+    }
+    // ------------------------------------
+
+    // Étape 3 : On retourne le résultat de la transaction au contrôleur
+    return result;
+  }
+
+  findForPlayer(userId: string) {
+    return this.prisma.session.findMany({
+      orderBy: {
+        startTime: 'asc',
+      },
+      include: {
+        // On inclut la présence UNIQUEMENT pour le joueur connecté
+        availabilities: {
+          where: {
+            userId: userId,
+          },
+        },
+      },
     });
   }
 }

@@ -11,10 +11,13 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.72",
     "discord.js": "^14.20.0",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
   }
 }

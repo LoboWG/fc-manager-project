@@ -14,6 +14,7 @@ export default function PublicHeader() {
           FC Manager
         </span>
       </Link>
+      <Link href="/my-schedule"><span className="cursor-pointer hover:text-blue-400">Mes Présences</span></Link>
 
       <div className="flex items-center gap-4">
         {/* Pendant que l'on vérifie si l'utilisateur est connecté, on peut afficher un message */}
