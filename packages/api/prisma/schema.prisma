@@ -62,24 +62,37 @@ model Competition {
   providerId String
 
   matches Match[]
+  teams     Team[]
 }
 
-// Modèle Match (Version modifiée et définitive)
 model Match {
   id            String    @id @default(cuid())
-  opponent      String
-  round         String?   // ex: "Journée 5", "32ème de finale"
-  matchDate     DateTime? // Rendu optionnel pour correspondre à notre logique
-  ourScore      Int?
-  theirScore    Int?
+  round         String?   // Le nom de la journée (ex: "Journée 1")
+
+  // NOUVEAUX CHAMPS POUR GÉRER UN MATCH COMPLET
+  homeTeam   Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  homeTeamId String
+  awayTeam   Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  awayTeamId String
+  homeTeamScore Int?      // Score de l'équipe à domicile
+  awayTeamScore Int?      // Score de l'équipe à l'extérieur
+
+  // Ce champ nous permettra d'identifier notre match dans la liste
+  isOurMatch    Boolean   @default(false) 
+
+  matchDate     DateTime? // La date du match si planifié
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Les relations ne changent pas
   competition   Competition? @relation(fields: [competitionId], references: [id])
-  competitionId String?
+  competitionId String?      
 
   session       Session?  @relation(fields: [sessionId], references: [id])
   sessionId     String?
+
+  // On supprime la relation vers l'équipe car on gère les noms directement
+  // On supprime "opponent", "ourScore", "theirScore"
 }
 
 // Modèle pour les Sessions de jeu
@@ -108,8 +121,6 @@ model Availability {
   @@unique([userId, sessionId])
 }
 
-// --- MODÈLES POUR LA COMPOSITION D'ÉQUIPE ---
-
 // Enum pour le statut d'un joueur dans la compo
 enum LineupStatus {
   TITULAIRE
@@ -132,4 +143,16 @@ model LineupPlayer {
 
   // On s'assure qu'un joueur ne peut avoir qu'une seule place par session
   @@unique([userId, sessionId])
+}
+
+model Team {
+  id   String @id @default(cuid())
+  name String @unique
+
+  // Une équipe peut jouer plusieurs matchs à domicile et à l'extérieur
+  homeMatches  Match[] @relation("HomeTeam")
+  awayMatches  Match[] @relation("AwayTeam")
+
+  // Une équipe peut participer à plusieurs compétitions
+  competitions Competition[]
 }

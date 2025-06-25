@@ -8,22 +8,34 @@ export class MatchesService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createMatchDto: CreateMatchDto) {
-  const { competitionId, sessionId, ...matchData } = createMatchDto;
+  // On extrait tous les IDs et le reste des données
+  const {
+    homeTeamId,
+    awayTeamId,
+    competitionId,
+    sessionId,
+    ...otherData // Contient round, isOurMatch
+  } = createMatchDto;
 
   return this.prisma.match.create({
     data: {
-      ...matchData, // opponent, round, matchDate...
-      // On connecte la compétition SEULEMENT si un competitionId est fourni
+      ...otherData, // On passe les données simples
+      // On convertit la date si elle existe
+      matchDate: createMatchDto.matchDate ? new Date(createMatchDto.matchDate) : undefined,
+
+      // On crée les relations via les ID
+      homeTeam: {
+        connect: { id: homeTeamId },
+      },
+      awayTeam: {
+        connect: { id: awayTeamId },
+      },
+      // On connecte la compétition et la session si leurs IDs sont fournis
       ...(competitionId && {
-        competition: {
-          connect: { id: competitionId },
-        },
+        competition: { connect: { id: competitionId } },
       }),
-      // On connecte la session SEULEMENT si un sessionId est fourni
       ...(sessionId && {
-        session: {
-          connect: { id: sessionId },
-        },
+        session: { connect: { id: sessionId } },
       }),
     },
   });
@@ -49,6 +61,8 @@ export class MatchesService {
         },
       },
       session: true,
+      homeTeam: true,
+      awayTeam: true,
     },
     orderBy: {
       createdAt: 'asc',
@@ -63,4 +77,17 @@ update(id: string, updateMatchDto: UpdateMatchDto) {
       data: updateMatchDto, // On passe directement le DTO
     });
   }
+
+
+createMany(fixtures: CreateMatchDto[]) {
+  // On s'assure que les dates sont bien au format Date si elles sont fournies
+  const dataToCreate = fixtures.map(fixture => ({
+    ...fixture,
+    matchDate: fixture.matchDate ? new Date(fixture.matchDate) : undefined,
+  }));
+
+  return this.prisma.match.createMany({
+    data: dataToCreate,
+  });
+}
 }

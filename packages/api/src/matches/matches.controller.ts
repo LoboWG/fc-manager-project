@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { CreateBulkMatchesDto } from './dto/create-bulk-matches.dto';
 
 @Controller('matches')
 export class MatchesController {
@@ -25,4 +26,9 @@ findAll(
   update(@Param('id') id: string, @Body() updateMatchDto: UpdateMatchDto) {
     return this.matchesService.update(id, updateMatchDto);
   }
+
+  @Post('bulk')
+createBulk(@Body() createBulkMatchesDto: CreateBulkMatchesDto) {
+  return this.matchesService.createMany(createBulkMatchesDto.fixtures);
+}
 }

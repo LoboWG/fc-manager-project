@@ -20,6 +20,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin/settings">
             <span className="px-4 py-2 rounded hover:bg-gray-700 cursor-pointer">Paramètres</span>
           </Link>
+          <Link href="/admin/teams">
+            <span className="px-4 py-2 rounded hover:bg-gray-700 cursor-pointer">Équipes</span>
+          </Link>
         </nav>
       </aside>
 

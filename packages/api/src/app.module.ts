@@ -9,6 +9,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { MatchesModule } from './matches/matches.module';
 import { AvailabilitiesModule } from './availabilities/availabilities.module';
 import { CompetitionProvidersModule } from './competition-providers/competition-providers.module';
+import { TeamsModule } from './teams/teams.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CompetitionProvidersModule } from './competition-providers/competition-
     MatchesModule,
     AvailabilitiesModule,
     CompetitionProvidersModule,
+    TeamsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

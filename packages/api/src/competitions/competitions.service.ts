@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
+import { UpdateCompetitionDto } from './dto/update-competition.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -30,10 +31,36 @@ export class CompetitionsService {
 }
 
   findOne(id: string) {
-    return this.prisma.competition.findUnique({
-      where: { id: id },
-      include: { provider: true }, // On inclut aussi le provider
+  return this.prisma.competition.findUnique({
+    where: { id: id },
+    include: {
+      provider: true,
+      teams: true, // <-- ON AJOUTE CET INCLUDE pour charger les équipes liées
+    },
+  });
+}
+
+  async addTeamsToCompetition(competitionId: string, teamIds: string[]) {
+    return this.prisma.competition.update({
+      where: { id: competitionId },
+      data: {
+        teams: {
+          set: teamIds.map(id => ({ id: id })),
+        },
+      },
+      include: {
+        teams: true,
+      },
     });
+  }
+
+  // Les autres méthodes générées par le CLI que nous n'utilisons pas encore
+  update(id: string, updateCompetitionDto: UpdateCompetitionDto) {
+    return `This action updates a #${id} competition`;
+  }
+
+  remove(id: string) {
+    return `This action removes a #${id} competition`;
   }
 }
 

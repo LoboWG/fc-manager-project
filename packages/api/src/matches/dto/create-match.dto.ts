@@ -1,32 +1,32 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsDateString,
-  IsOptional,
-} from 'class-validator';
+// Fichier : packages/api/src/matches/dto/create-match.dto.ts
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsDateString } from 'class-validator';
 
 export class CreateMatchDto {
   @IsString()
   @IsNotEmpty()
-  opponent: string;
+  homeTeamId: string; // On attend maintenant l'ID de l'équipe à domicile
 
-  // Le tour/journée est optionnel
+  @IsString()
+  @IsNotEmpty()
+  awayTeamId: string; // Et l'ID de l'équipe à l'extérieur
+
   @IsString()
   @IsOptional()
   round?: string;
 
-  // La date du match est maintenant optionnelle
-  @IsDateString()
+  @IsBoolean()
   @IsOptional()
-  matchDate?: Date;
+  isOurMatch?: boolean;
 
-  // La compétition reste obligatoire pour créer un match
   @IsString()
   @IsOptional()
   competitionId?: string;
 
-  // La session est maintenant optionnelle
   @IsString()
   @IsOptional()
   sessionId?: string;
+
+  @IsDateString() // On garde IsDateString car le frontend enverra un string ISO
+  @IsOptional()
+  matchDate?: string;
 }
