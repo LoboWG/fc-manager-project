@@ -14,8 +14,7 @@ export default function PublicHeader() {
           FC Manager
         </span>
       </Link>
-      <Link href="/my-schedule"><span className="cursor-pointer hover:text-blue-400">Mes Présences</span></Link>
-
+      
       <div className="flex items-center gap-4">
         {/* Pendant que l'on vérifie si l'utilisateur est connecté, on peut afficher un message */}
         {loading && (
@@ -25,6 +24,14 @@ export default function PublicHeader() {
         {/* Une fois le chargement terminé ET si l'utilisateur est connecté */}
         {!loading && user && (
           <>
+            <Link href="/dashboard">
+              <span className="text-white font-semibold hover:text-blue-400 cursor-pointer">
+                Accueil Club
+              </span>
+            </Link>
+            <Link href="/my-schedule"><span className="cursor-pointer hover:text-blue-400">Mes Présences</span></Link>
+
+
             <span className="text-white hidden sm:block">Bonjour, {user.username}</span>
 
             {/* On affiche le bouton Admin SEULEMENT si le rôle est le bon */}

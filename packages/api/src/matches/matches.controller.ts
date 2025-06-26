@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { CreateBulkMatchesDto } from './dto/create-bulk-matches.dto';
+import { CreateFriendlyMatchDto } from './dto/create-friendly-match.dto';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
 @Controller('matches')
 export class MatchesController {
@@ -31,4 +33,17 @@ findAll(
 createBulk(@Body() createBulkMatchesDto: CreateBulkMatchesDto) {
   return this.matchesService.createMany(createBulkMatchesDto.fixtures);
 }
+
+@Post('friendly')
+@UseGuards(AuthenticatedGuard) // Route protégée
+createFriendly(
+  @Body() createFriendlyDto: CreateFriendlyMatchDto,
+  @Req() req: any,
+) {
+  // Pour l'instant, on va tricher pour l'ID de notre équipe
+  // Plus tard, on le mettra dans une config globale
+  const MY_TEAM_ID = "cmcc7dop30003i0mfqa31kd0n";
+  return this.matchesService.createFriendly(createFriendlyDto, MY_TEAM_ID);
+}
+
 }

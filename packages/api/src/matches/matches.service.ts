@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateFriendlyMatchDto } from './dto/create-friendly-match.dto';
 
 @Injectable()
 export class MatchesService {
@@ -49,6 +50,7 @@ export class MatchesService {
   }
   if (unassigned) {
     whereClause.sessionId = null;
+    whereClause.isOurMatch = true;
   }
 
   return this.prisma.match.findMany({
@@ -88,6 +90,32 @@ createMany(fixtures: CreateMatchDto[]) {
 
   return this.prisma.match.createMany({
     data: dataToCreate,
+  });
+}
+async createFriendly(createFriendlyDto: CreateFriendlyMatchDto, myTeamId: string) {
+  const { opponentName, isOurTeamHome, matchDate, sessionId } = createFriendlyDto;
+
+  // Logique "Find or Create" (Trouver ou Créer) pour l'adversaire
+  const opponentTeam = await this.prisma.team.upsert({
+    where: { name: opponentName }, // Cherche une équipe avec ce nom
+    update: {}, // Si elle existe, ne rien faire
+    create: { name: opponentName }, // Si elle n'existe pas, la créer
+  });
+
+  // Définir qui est à domicile et qui est à l'extérieur
+  const homeTeamId = isOurTeamHome ? myTeamId : opponentTeam.id;
+  const awayTeamId = isOurTeamHome ? opponentTeam.id : myTeamId;
+
+  // Créer le match
+  return this.prisma.match.create({
+    data: {
+      homeTeamId,
+      awayTeamId,
+      isOurMatch: true,
+      round: 'Amical',
+      matchDate: new Date(matchDate),
+      sessionId,
+    },
   });
 }
 }

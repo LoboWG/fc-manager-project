@@ -1,6 +1,6 @@
 import { IsArray, IsEnum, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { LineupStatus } from '../../../generated/prisma';
+import { LineupStatus } from '@prisma/client';
 
 // Ce DTO représente UN joueur dans la liste
 class LineupPlayerDto {

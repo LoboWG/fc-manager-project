@@ -39,6 +39,8 @@ export class SessionsService {
               provider: true,
             },
           },
+          homeTeam: true, 
+          awayTeam: true,
         },
       },
       // La logique pour les présences ne change pas
